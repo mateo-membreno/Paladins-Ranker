@@ -1,0 +1,8 @@
+1. read in every match
+    - check if match is ranked or casual (1,0)
+    - read in map name
+    - read in every champion in match
+        - first 5 are winners second 5 are losers
+
+
+
