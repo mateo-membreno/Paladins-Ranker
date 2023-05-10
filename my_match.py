@@ -1,25 +1,50 @@
-from selenium import webdriver
+#THIS ONE WORKS
 import pandas as pd
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.options import Options
 
-# Define the URL of the match page
-url = 'https://paladins.guru/match/1220879782'
+# create df columns
+df = pd.DataFrame(columns=['Match ID', 'Date', 'Game Mode'])
 
-# Set up the Selenium driver
-driver = webdriver.Chrome() # Replace with the path to your Chrome driver executable
-driver.get(url)
+# create options object
+chrome_options = Options()
 
-# Find the game mode and game queue sections and extract their values
-game_mode = driver.find_element_by_css_selector('.card-header__match-info-text').text.strip()
-game_queue = driver.find_element_by_css_selector('.card-header__match-info-queue').text.strip()
+# set headless option to true
+chrome_options.add_argument('--headless')
 
-# Create a pandas DataFrame to store the extracted data
-df = pd.DataFrame({
-    'Game Mode': [game_mode],
-    'Game Queue': [game_queue]
-})
+# create webdriver instance
+driver = webdriver.Chrome(options=chrome_options)
 
-# Print the DataFrame
+# match ID
+match_ID = 1220879782
+
+# navigate to the page
+driver.get(f"https://paladins.guru/match/{match_ID}")
+
+# get game mode
+try:
+    game_mode_text = driver.find_element(By.CSS_SELECTOR, 'h1[data-v-2e77aec3]')
+    game_mode = game_mode_text.text.strip()
+except NoSuchElementException:
+    game_mode = "N/A"
+
+# get players
+try:
+    span_tag = driver.find_element(By.CSS_SELECTOR, 'span[data-tooltip]')
+    date = span_tag.get_attribute('data-tooltip')
+except NoSuchElementException:
+    date = "N/A"
+
+
+# create a dictionary with the game mode text
+data = {'Game Mode': [game_mode]}
+
+# create a dataframe from the dictionary
+df = pd.DataFrame(data)
 print(df)
 
-# Close the Selenium driver
+# close the webdriver instance
 driver.quit()
