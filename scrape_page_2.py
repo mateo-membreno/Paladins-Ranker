@@ -1,5 +1,5 @@
 # THIS ONE WORKS
-import pandas as pd
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -7,24 +7,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 
 
-def scrape_match(match_id):
-    # create df columns
-    df = pd.DataFrame(columns=['Match ID', 'Date', 'Game Mode', 'Winners', 'Losers'])
-
-    # create options object
-    chrome_options = Options()
-
-    # set headless option to true
-    chrome_options.add_argument('--headless')
-
-    # create webdriver instance
-    driver = webdriver.Chrome(options=chrome_options)
-
-    # match ID ex.
-    # match_id = 1220879782
-
-    # navigate to the page
-    driver.get(f"https://paladins.guru/match/{match_id}")
+def scrape_match_2(driver, match_id):
 
     # get date
     try:
@@ -92,8 +75,5 @@ def scrape_match(match_id):
         'Winners': winners,
         'Losers': losers
     }
-    df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
-    print(df.head().to_string())
 
-    # close the webdriver instance
-    driver.quit()
+    return new_row
