@@ -65,4 +65,5 @@ csv_file_path = fr'C:\Users\SummerlyCow\Desktop\Paladins-Ranker\Data\{start_numb
 # Save the DataFrame as a CSV file
 df.to_csv(csv_file_path, index=False)
 
+
 print("DataFrame saved as CSV successfully.")
