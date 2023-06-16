@@ -32,11 +32,15 @@ def scrape_match(match_id):
         date = "N/A"
 
     # get game mode
+    # get match length
     try:
         game_mode_text = driver.find_element(By.CSS_SELECTOR, 'h1[data-v-2e77aec3]')
+        match_length_text = driver.find_element(By.CSS_SELECTOR, 'h3[data-v-2e77aec3]')
         game_mode = game_mode_text.text.strip()
+        match_length = match_length_text.text.strip()
     except NoSuchElementException:
         game_mode = "N/A"
+        match_length = "N/A"
 
     # find the winners table
     try:
@@ -75,12 +79,10 @@ def scrape_match(match_id):
                 pass
     except NoSuchElementException:
         losers = "N/A"
-    # try:
-    #     div_tags = driver.find_elements(By.CSS_SELECTOR, 'div[data-v-141fab60]')
-    #     for div_tag in div_tags:
-    #         print(div_tag.text)
-    # except NoSuchElementException:
-    #     div_tags = "N/A"
+
+
+    # compiile match data
+    match_data = [match_id, date, game_mode, match_length]
 
     # add to df
     new_row = {

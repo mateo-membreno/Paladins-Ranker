@@ -45,7 +45,4 @@ for number in range(start_number, end_number + 1):
 # Quit the driver and close the browser
 driver.quit()
 
-# Print the list of matching numbers
-print("Matching numbers:")
-for number in matching_numbers:
-    print(number)
+
