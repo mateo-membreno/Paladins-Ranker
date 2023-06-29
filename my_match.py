@@ -9,7 +9,7 @@ from scrape_page import scrape_match
 base_url = 'https://paladins.guru/match/'
 
 # create df columns
-df = pd.DataFrame(columns=['Match ID', 'Date', 'Game Mode', 'Winners', 'Losers'])
+df = pd.DataFrame(columns=['Match ID', 'Date', 'Game Mode', 'Match Length', 'Winners', 'Losers'])
 
 # iterate over all match numbers
 for match_id in range(1220879781, 1220879783):
@@ -31,4 +31,4 @@ for match_id in range(1220879781, 1220879783):
         # Handle unsuccessful responses or missing pages
         print(f"Match {match_id} not found or inaccessible")
 
-print(df)
+print(df.to_string())

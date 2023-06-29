@@ -80,15 +80,12 @@ def scrape_match(match_id):
     except NoSuchElementException:
         losers = "N/A"
 
-
-    # compiile match data
-    match_data = [match_id, date, game_mode, match_length]
-
     # add to df
     new_row = {
         'Match ID': match_id,
         'Date': date,
         'Game Mode': game_mode,
+        'Match Length': match_length,
         'Winners': winners,
         'Losers': losers
     }
