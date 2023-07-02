@@ -1,35 +1,53 @@
-import mysql.connector
+
 from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 
 
-# Define the database connection function
-def establish_db_connection():
-    conn = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password=input("password?"),
-        database="your_database"
-    )
-    return conn
+def find_match_ids_by_player(username):
+    match_ids = []
+    count = 0
+
+    match_history_url = r'https://paladins.guru/profile/369683-z1unknown/matches'
+
+    chrome_options = Options()
+    chrome_options.add_argument('--headless')
+    driver = webdriver.Chrome(options=chrome_options)
+    driver.get(f"{match_history_url}")
+    div_match_table = driver.find_element(By.CSS_SELECTOR, 'div.column.col-8.col-md-12')
+    div_match_table = div_match_table.find_element(By.CSS_SELECTOR, "ul.pagination[data-v-bb727534].pagination")
+    div_pages = div_match_table.find_elements(By.CSS_SELECTOR, 'div.page-item')[3]
+    max_page_number = div_pages.text
+    print(max_page_number)
+    for i in range(1, int(max_page_number)+1):
+        print(i)
+        url = match_history_url + '?page=' + str(i)
+        driver.get(f"{url}")
+        div_match_table = driver.find_element(By.CSS_SELECTOR, 'div.column.col-8.col-md-12')
+        div_matches = div_match_table.find_elements(By.CSS_SELECTOR, "div[class^='widget match-widget match-widget']")
+        for div_match in div_matches:
+            link_element = div_match.find_element(By.TAG_NAME, "a")
+            link_text = link_element.get_attribute("href")
+            match_id = int(link_text.split("match/")[1])
+            match_ids.append(match_id)
+            count += 1
+    print("{} Match ids collected".format(count))
+    return match_ids
 
 
 # Define the web scraping function
-def scrape_page(match_url):
+def scrape_page(match_id):
     # Perform web scraping logic here
     # create options object
     chrome_options = Options()
-
-    # set headless option to true
     chrome_options.add_argument('--headless')
 
     # create webdriver instance
     driver = webdriver.Chrome(options=chrome_options)
 
     # match ID .
-    match_id = int(match_url.split("/match/")[1])
+    match_url = r'https://paladins.guru/match/' + str(match_id)
 
     # navigate to the page
     driver.get(f"{match_url}")
@@ -64,11 +82,9 @@ def scrape_page(match_url):
         team_divs = element.find_element(By.CSS_SELECTOR, 'div.columns')
         team_divs = team_divs.find_elements(By.CSS_SELECTOR, 'div.column')
         for i, team_div in enumerate(team_divs):
-            print(i)
             if i == 0:
                 score_div = team_div.find_element(By.CSS_SELECTOR, 'h1[data-v-09d5041f]')
                 team_1_score = int(score_div.text)
-                print(team_1_score)
             elif i == 2:
                 score_div = team_div.find_element(By.CSS_SELECTOR, 'h1[data-v-09d5041f]')
                 team_2_score = int(score_div.text)
@@ -86,10 +102,12 @@ def scrape_page(match_url):
 
     # find the player info
     players = []
+    usernames = []
     try:
         # find all player divs
         element = driver.find_element(By.CSS_SELECTOR, '#match-stats')
         team_divs = element.find_elements(By.CSS_SELECTOR, 'div.scrollable')
+
 
         for team_number, team_div in enumerate(team_divs):
             body_div = team_div.find_element(By.CSS_SELECTOR, 'div.match-table__body')
@@ -99,6 +117,7 @@ def scrape_page(match_url):
                 div_element = player_div.find_element(By.CSS_SELECTOR, 'div[data-v-141fab60]')
                 div_user = player_div.find_element(By.CSS_SELECTOR, 'a.row__player__name')
                 username = div_user.text
+                usernames.append(username)
                 champion_name_div = div_element.find_element(By.CSS_SELECTOR, 'div[data-v-141fab60]')
                 champion_name = champion_name_div.text
                 player_data = [match_id, team_number + 1, champion_name, username, pick_number + 1]
@@ -125,9 +144,10 @@ def scrape_page(match_url):
     damage_div = section_element.find_element(By.ID, 'insight-damage')
     table_div = damage_div.find_element(By.CSS_SELECTOR, 'div.match-table__body')
     row_divs = table_div.find_elements(By.CSS_SELECTOR, 'div.row.match-table__row')
+    print(usernames)
     for row in row_divs:
         individual = [match_id]
-        row_data = row.text.split()
+        row_data = row.text.splitlines()
         for data in row_data:
             try:
                 data = int(data.replace(',', ''))
@@ -136,33 +156,10 @@ def scrape_page(match_url):
                 individual.append(data)
         damage_breakdown.append(individual)
     driver.quit()
+    print(match)
+    print(players)
+    print(damage_breakdown)
     return [match, players, damage_breakdown]
 
 
-# Define the function to insert data into the database
-def insert_match_data_to_db(conn, data):
-    cursor = conn.cursor()
-    # Execute SQL statements to insert data into the database
-    insert_query = "INSERT INTO your_table (match_id, date, duration, game_mode, team_1_score, team_2_score, " \
-                   "winning_team) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-    cursor.execute(insert_query, data)
-    conn.commit()
-    cursor.close()
 
-
-def insert_player_data_to_db(conn, data):
-    cursor = conn.cursor()
-    # Execute SQL statements to insert data into the database
-    insert_query = "INSERT INTO your_table (match_id, team_number, champion, player_number) VALUES (%s, %s, %s, %s, " \
-                   "%s, %s, %s)"
-    conn.commit()
-    cursor.close()
-
-
-def insert_damage_breakdown_data_to_db(conn, data):
-    cursor = conn.cursor()
-    # Execute SQL statements to insert data into the database
-    insert_query = "INSERT INTO your_table (match_id, team_number, champion, player_number) VALUES (%s, %s, %s, %s, " \
-                   "%s, %s, %s)"
-    conn.commit()
-    cursor.close()
