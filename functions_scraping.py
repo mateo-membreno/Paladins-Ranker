@@ -53,90 +53,91 @@ def scrape_page(match_id):
     driver.get(f"{match_url}")
 
     # get date
-    try:
-        span_tag = driver.find_element(By.CSS_SELECTOR, 'span[data-tooltip]')
-        date = span_tag.get_attribute('data-tooltip')
-        datetime_obj = datetime.strptime(date, '%A, %B %d, %Y %I:%M %p')
-        date = datetime_obj.strftime('%Y-%m-%d %H:%M:%S')
-    except NoSuchElementException:
-        date = "N/A"
+
+    span_tag = driver.find_element(By.CSS_SELECTOR, 'span[data-tooltip]')
+    date = span_tag.get_attribute('data-tooltip')
+    datetime_obj = datetime.strptime(date, '%A, %B %d, %Y %I:%M %p')
+    date = datetime_obj.strftime('%Y-%m-%d %H:%M:%S')
 
     # get game mode
     # get match length
-    try:
-        game_mode_text = driver.find_element(By.CSS_SELECTOR, 'h1[data-v-2e77aec3]')
-        match_length_text = driver.find_element(By.CSS_SELECTOR, 'h3[data-v-2e77aec3]')
-        game_mode = game_mode_text.text.strip()
-        match_length = int(match_length_text.text.strip().split()[3])
-    except NoSuchElementException:
-        game_mode = "N/A"
-        match_length = "N/A"
+    game_mode_text = driver.find_element(By.CSS_SELECTOR, 'h1[data-v-2e77aec3]')
+    match_length_text = driver.find_element(By.CSS_SELECTOR, 'h3[data-v-2e77aec3]')
+    game_mode = game_mode_text.text.strip()
+    match_length = int(match_length_text.text.strip().split()[3])
 
     # get map
     map_class = driver.find_element(By.CSS_SELECTOR, 'h2[style="font-size: 1.6em; margin-bottom: 0; color: #f3f3f3"]')
     match_map = map_class.text.strip()
 
     # get score and winning team
-    try:
+    if game_mode != 'Ranked: Competitive':
         element = driver.find_element(By.CSS_SELECTOR, '#match-stats')
         team_divs = element.find_element(By.CSS_SELECTOR, 'div.columns')
-        team_divs = team_divs.find_elements(By.CSS_SELECTOR, 'div.column')
-        for i, team_div in enumerate(team_divs):
-            if i == 0:
-                score_div = team_div.find_element(By.CSS_SELECTOR, 'h1[data-v-09d5041f]')
-                team_1_score = int(score_div.text)
-            elif i == 2:
-                score_div = team_div.find_element(By.CSS_SELECTOR, 'h1[data-v-09d5041f]')
-                team_2_score = int(score_div.text)
-        if team_2_score > team_1_score:
-            winning_team_number = 2
-        else:
-            winning_team_number = 1
-    except NoSuchElementException:
-        team_2_score = -1
-        team_1_score = -1
-        winning_team_number = -1
+        data = team_divs.text.splitlines()
+        team_1_score = int(data[1])
+        team_2_score = int(data[4])
+        ban_1 = "n_a"
+        ban_2 = "n_a"
+        ban_3 = "n_a"
+        ban_4 = "n_a"
+
+    else:
+        element = driver.find_element(By.CSS_SELECTOR, '#match-stats')
+        team_divs = element.find_element(By.CSS_SELECTOR, 'div.columns')
+        data = team_divs.text.splitlines()
+        team_1_score = int(data[2])
+        team_2_score = int(data[5])
+        print(team_2_score, team_1_score)
+        bans = element.find_elements(By.CSS_SELECTOR, '.match-stats__bans > a')
+        bans_list = []
+        for ban in bans:
+            bans_list.append(ban.get_attribute('data-tooltip'))
+        ban_1 = bans_list[0]
+        ban_2 = bans_list[1]
+        ban_3 = bans_list[2]
+        ban_4 = bans_list[3]
+
+    if team_2_score > team_1_score:
+        winning_team_number = 2
+    else:
+        winning_team_number = 1
 
     # add match info to list
-    match = [match_id, date, match_length, game_mode, team_1_score, team_2_score, winning_team_number, match_map]
+    match = [match_id, date, match_length, game_mode, team_1_score, team_2_score, winning_team_number, match_map, ban_1, ban_2, ban_3, ban_4]
 
     # find the player info
     players = []
     usernames = []
-    try:
-        # find all player divs
-        element = driver.find_element(By.CSS_SELECTOR, '#match-stats')
-        team_divs = element.find_elements(By.CSS_SELECTOR, 'div.scrollable')
 
-
-        for team_number, team_div in enumerate(team_divs):
-            body_div = team_div.find_element(By.CSS_SELECTOR, 'div.match-table__body')
-            row_divs = body_div.find_elements(By.CSS_SELECTOR, 'div.row.match-table__row')
-            for pick_number, div in enumerate(row_divs):
-                player_div = div.find_element(By.CSS_SELECTOR, 'div.row__player')
-                div_element = player_div.find_element(By.CSS_SELECTOR, 'div[data-v-141fab60]')
-                div_user = player_div.find_element(By.CSS_SELECTOR, 'a.row__player__name')
-                username = div_user.text
-                usernames.append(username)
-                champion_name_div = div_element.find_element(By.CSS_SELECTOR, 'div[data-v-141fab60]')
-                champion_name = champion_name_div.text
-                player_data = [match_id, team_number + 1, champion_name, username, pick_number + 1]
-                div_row_items = div.find_elements(By.CSS_SELECTOR, 'div.row__item')
-                for i, item_div in enumerate(div_row_items):
-                    if i == 1:
-                        content = item_div.get_attribute("innerHTML").split()
-                        player_data.append(int(content[0]))
-                        player_data.append(int(content[2]))
-                        player_data.append(int(content[4]))
-                    elif i == 0 or i == 2:
-                        content = item_div.get_attribute("innerHTML")
-                        player_data.append(int(content.replace(',', '')))
-                    else:
-                        break
-                players.append(player_data)
-
-    except NoSuchElementException:
-        winners = "N/A"
+    # find all player divs
+    element = driver.find_element(By.CSS_SELECTOR, '#match-stats')
+    team_divs = element.find_elements(By.CSS_SELECTOR, 'div.scrollable')
+    for team_number, team_div in enumerate(team_divs):
+        body_div = team_div.find_element(By.CSS_SELECTOR, 'div.match-table__body')
+        row_divs = body_div.find_elements(By.CSS_SELECTOR, 'div.row.match-table__row')
+        for pick_number, div in enumerate(row_divs):
+            player_div = div.find_element(By.CSS_SELECTOR, 'div.row__player')
+            div_element = player_div.find_element(By.CSS_SELECTOR, 'div[data-v-141fab60]')
+            div_user = player_div.find_element(By.CSS_SELECTOR, 'a.row__player__name')
+            username = div_user.text
+            usernames.append(username)
+            champion_name_div = div_element.find_element(By.CSS_SELECTOR, 'div[data-v-141fab60]')
+            champion_name = champion_name_div.text
+            player_data = [match_id, team_number + 1, champion_name, username, pick_number + 1]
+            div_row_items = div.find_elements(By.CSS_SELECTOR, 'div.row__item')
+            for i, item_div in enumerate(div_row_items):
+                if i == 1:
+                    content = item_div.get_attribute("innerHTML").split()
+                    player_data.append(int(content[0]))
+                    player_data.append(int(content[2]))
+                    player_data.append(int(content[4]))
+                elif i == 0 or i == 2:
+                    content = item_div.get_attribute("innerHTML")
+                    player_data.append(int(content.replace(',', '')))
+                else:
+                    break
+            players.append(player_data)
 
     # find damage breakdown
     damage_breakdown = []
@@ -159,6 +160,7 @@ def scrape_page(match_id):
     print(match)
     print(players)
     print(damage_breakdown)
+
     return [match, players, damage_breakdown]
 
 

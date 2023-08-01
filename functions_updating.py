@@ -17,7 +17,8 @@ def establish_db_connection():
 
 def insert_match_data_to_db(cursor, data):
     insert_query = "INSERT INTO `match` (match_id, date, match_length, game_mode, team_one_score, team_two_score, " \
-                   "winning_team, map) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
+                   "winning_team, map, ban_1, ban_2, ban_3, ban_4 ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, " \
+                   "%s, %s)"
     cursor.execute(insert_query, data)
     print("succesfully added match data")
 
@@ -92,4 +93,22 @@ def read_json(file_name):
         data_list = []
     return data_list
 
-def remove_from_json(file_name)
+
+def update_dupes_json(file_name, cursor):
+    file_path = r'C:\Users\SummerlyCow\Desktop\Paladins-Ranker\data\{}.json'.format(file_name)
+
+    query = "SELECT match_id FROM `match`"
+    cursor.execute(query)
+    db_match_ids = cursor.fetchall()
+    json_match_ids = read_json(file_name)
+    unique_list = json_match_ids
+    for match_id in db_match_ids:
+        if match_id[0] in json_match_ids:
+            unique_list.remove(match_id[0])
+
+    with open(file_path, 'r') as file:
+        data = json.load(file)
+
+    # Write the modified data back to the JSON file
+    with open(file_path, 'w') as file:
+        json.dump(unique_list, file)
