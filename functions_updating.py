@@ -8,7 +8,7 @@ def establish_db_connection():
     conn = mysql.connector.connect(
         host="localhost",
         user="root",
-        password="maxmembreno$",
+        password="",
         database="paladins"
     )
     print("successfully connected to database")
