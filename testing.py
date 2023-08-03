@@ -1,13 +1,15 @@
 from functions_scraping import find_match_ids_by_player, scrape_page
-from functions_updating import create_json, read_json, add_to_json, update_dupes_json, establish_db_connection, insert_damage_breakdown_data_to_db, commit_and_close_db_connection, insert_match_data_to_db, insert_player_data_to_db
+from functions_updating import create_json, read_json, add_to_json, establish_db_connection, insert_damage_breakdown_data_to_db, commit_and_close_db_connection, insert_match_data_to_db, insert_player_data_to_db
 
-
+# establish connection and cursor
 conn = establish_db_connection()
 cursor = conn.cursor()
 
-update_dupes_json("match_ids", cursor)
+# read in match ids from json file as set
 match_ids = read_json("match_ids")
 print(len(match_ids), match_ids)
+
+# initialize counter for pages scraped
 count = 0
 for ID in match_ids:
     # if this doesn't work match ID is expired

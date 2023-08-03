@@ -52,35 +52,6 @@ def create_json(file_name):
     print("json created")
 
 
-def add_to_json(file_name, new_data):
-    file_path = r'C:\Users\SummerlyCow\Desktop\Paladins-Ranker\data\{}.json'.format(file_name)
-
-    if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
-        # Read existing data from JSON file
-        with open(file_path, "r") as file:
-            data_list = json.load(file)
-    else:
-        # Initialize an empty list if the file is empty
-        data_list = []
-
-    # Append new data to the existing list
-    for i in new_data:
-        data_list.append(i)
-
-    # remove duplicates
-    unique_data_list = []
-    for item in data_list:
-        if item not in unique_data_list:
-            unique_data_list.append(item)
-
-    # Write the updated data back to the JSON file
-    with open(file_path, "w") as file:
-        json.dump(unique_data_list, file)
-
-    print("Data added to JSON file.")
-    print(str(len(unique_data_list)) + " match ids in file")
-
-
 def read_json(file_name):
     file_path = r'C:\Users\SummerlyCow\Desktop\Paladins-Ranker\data\{}.json'.format(file_name)
 
@@ -88,27 +59,35 @@ def read_json(file_name):
         # Read existing data from JSON file
         with open(file_path, "r") as file:
             data_list = json.load(file)
+            data_set = set(data_list)
     else:
         # Initialize an empty list if the file is empty
-        data_list = []
-    return data_list
+        data_set = set()
+    return data_set
 
 
-def update_dupes_json(file_name, cursor):
+def add_to_json(file_name, new_data, cursor):
     file_path = r'C:\Users\SummerlyCow\Desktop\Paladins-Ranker\data\{}.json'.format(file_name)
 
+    data_set = read_json(file_path)
+
+    # Append new data to the existing list
+    for i in new_data:
+        data_set.add(i)
+
+    # gets all match ids already in database
+    file_path = r'C:\Users\SummerlyCow\Desktop\Paladins-Ranker\data\{}.json'.format(file_name)
     query = "SELECT match_id FROM `match`"
     cursor.execute(query)
     db_match_ids = cursor.fetchall()
-    json_match_ids = read_json(file_name)
-    unique_list = json_match_ids
-    for match_id in db_match_ids:
-        if match_id[0] in json_match_ids:
-            unique_list.remove(match_id[0])
 
-    with open(file_path, 'r') as file:
-        data = json.load(file)
+    # O(n), iterate through database match ids and use discard() to remove from data_set, so only removes dupes and ignores otherwise
+    for i in db_match_ids:
+        data_set.discard(i)
 
-    # Write the modified data back to the JSON file
-    with open(file_path, 'w') as file:
-        json.dump(unique_list, file)
+    # Write the updated data back to the JSON file
+    with open(file_path, "w") as file:
+        json.dump(data_set, file)
+
+    print("Data added to JSON file.")
+    print(str(len(data_set)) + " match ids in file")
