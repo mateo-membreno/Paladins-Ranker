@@ -1,2 +1,2 @@
 # Paladins-Ranker
-Statistical analysis of best team composition in Paladins
+Webscraped match data from top 100 Paladins players to determine opitmal champion pick given teammate and opponent picks
