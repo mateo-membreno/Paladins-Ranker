@@ -1,15 +1,19 @@
 import mysql.connector
 import json
 import os
+from dotenv import load_dotenv
 
+load_dotenv()
+DATABSE_PASSWORD = os.getenv("DATABSE_PASSWORD")
+DATABSE_DATABASE = os.getenv("DATABSE_DATABASE")
 
 # Define the database connection function
 def establish_db_connection():
     conn = mysql.connector.connect(
         host="localhost",
         user="root",
-        password="",
-        database="paladins"
+        password=DATABSE_PASSWORD,
+        database=DATABSE_DATABASE
     )
     print("successfully connected to database")
     return conn
