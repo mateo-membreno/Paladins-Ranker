@@ -1,5 +1,5 @@
 # Paladins-Ranker
-**Developement still in progress**
+***Developement still in progress***
 
 ## Summary 
 
