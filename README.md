@@ -1,9 +1,9 @@
 # Paladins-Ranker
-***Developement still in progress***
-
+**Developement still in progress**
+- current sample data is 1000+ points
 ## Summary 
 
-Webscraped match data from top 100 Paladins players to determine opitmal champion pick given teammate and opponent picks
+Webscraped match data from top 100 Paladins players to determine opitmal champion picks given teammate and opponent picks
 
 Here is a summary of what this program does:
 
