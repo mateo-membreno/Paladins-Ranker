@@ -1,4 +1,4 @@
-from functions_updating import establish_db_connection
+from functions_update_db import establish_db_connection
 from functions_query import best_picks_given
 
 
