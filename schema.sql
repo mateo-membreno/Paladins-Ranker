@@ -16,7 +16,35 @@ CREATE TABLE match{
 }
 
 CREATE TABLE player{
-    match_id INTEGER PRIMARY KEY NOT NULL,
+    match_id INTEGER NOT NULL,
+    team_number INTEGER NOT NULL,
+    champion VARCHAR(30) NOT NULL,
+    username VARCHAR(30) NOT NULL,
+    pick_number INTEGER NOT NULL,
+    champ_level INTEGER NOT NULL,
+    kills INTEGER NOT NULL,
+    deaths INTEGER NOT NULL,
+    assists INTEGER NOT NULL,
+    credits INTEGER NOT NULL,
+    PRIMARY KEY (match_id, username)
+}
+
+CREATE TABLE damage_breakdown{
+    match_id INTEGER NOT NULL,
+    win_loss VARCHAR(30) NOT NULL,
+    username VARCHAR(30) NOT NULL,
+    champion VARCHAR(30) NOT NULL,
+    total_damage INTEGER NOT NULL,
+    weapon_damage INTEGER NOT NULL,
+    healing INTEGER NOT NULL,
+    self_heal INTEGER NOT NULL,
+    damage_taken INTEGER NOT NULL,
+    shielding INTEGER NOT NULL,
+    PRIMARY KEY (match_id, username)
+}
+
+CREATE TABLE player_data (
+    match_id INTEGER NOT NULL,
     champion VARCHAR(30) NOT NULL,
     team_number INTEGER NOT NULL,
     username VARCHAR(30) NOT NULL,
@@ -25,18 +53,13 @@ CREATE TABLE player{
     kills INTEGER NOT NULL,
     deaths INTEGER NOT NULL,
     assists INTEGER NOT NULL,
-    credits INTEGER NOT NULL
-}
-
-CREATE TABLE damage_breakdown{
-    match_id INTEGER PRIMARY KEY NOT NULL,
-    champion VARCHAR(30) NOT NULL,
-    username VARCHAR(30) NOT NULL,
+    credits INTEGER NOT NULL,
     win_loss VARCHAR(30) NOT NULL,
     total_damage INTEGER NOT NULL,
     weapon_damage INTEGER NOT NULL,
     healing INTEGER NOT NULL,
     self_heal INTEGER NOT NULL,
     damage_taken INTEGER NOT NULL,
-    shielding INTEGER NOT NULL
-}
+    shielding INTEGER NOT NULL,
+    PRIMARY KEY (match_id, champion)
+);
