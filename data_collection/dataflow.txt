@@ -1,0 +1,33 @@
+
+scraped_ids = set()
+unscraped_ids = queue[match_id]
+
+scraped_profiles = set()
+unscraped_profiles = queue[]
+
+
+while !unscraped_ids.empty
+    id = unscraped_ids.pop()
+    scraped_ids.add(id)
+    profile_links, match_data = scrape_page(id)
+    for profile in profile_links  
+        if not in scraped_profiles
+            add to unscraped_profiles
+    store match_data in db
+
+
+AT THE SAME TIME time i want to
+
+while !unscraped_profiles.empty
+    profile = unscraped_profiles.pop()
+    scraped_profiles.add(profile)
+    match_ids = get_match_ids(profile)
+    for id in match_ids
+        if not in scraped_ids.
+            add to unscraped_ids
+
+
+
+
+
+
