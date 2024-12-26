@@ -19,8 +19,9 @@ driver_path = "chromedriver-mac-arm64/chromedriver"
 service = Service(driver_path)
 driver = webdriver.Chrome(service=service, options=chrome_options)
 
-def extract_data_from_html(url):
+def extract_data_from_html(match_id):
     """Extract text from a URL using Selenium to render the page."""
+    url = "https://paladins.guru/match/" + match_id
     try:
         driver.get(url)
         sleep(3) 
@@ -37,9 +38,9 @@ def extract_data_from_html(url):
 for line in sys.stdin:
     line = line.strip()
     if line:
-        url = line
-        text = extract_data_from_html(url)
+        match_id = line
+        text = extract_data_from_html(match_id)
         if text:
-            print(f"{url}\t{text}")
+            print(f"{match_id}\t{text}")
 
 driver.quit()
