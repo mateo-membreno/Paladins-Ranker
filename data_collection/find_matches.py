@@ -29,11 +29,12 @@ def find_matches(user_profile):
         print("found page")
         soup = BeautifulSoup(driver.page_source, "html.parser")
 
-        section = soup.find(id="cw")
+        section = soup.find(id="w")
+        section = soup.find(id="cw", recursive=False)
         print("cw")
         # good to here
         section = section.find_next()
-        section = section.find_all("section", style="background: rgb(244, 250, 253);")
+        section = section.find("section", recursive=False)
     
         section = section.find("div", class_="container", recursive=False)
         print("container")
@@ -44,9 +45,6 @@ def find_matches(user_profile):
         for match_div in section.find_all("div", recursive=False)[1:]:
              header = match_div.find(class_="top").find(class_="d-flex")
              print(header.find("a").get("href"))
-
-
-
 
         return None
     except Exception as e:
