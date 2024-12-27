@@ -1,0 +1,43 @@
+#!/bin/bash
+CURRENT_DIR=$(pwd)
+DB_PATH="paladins.db"  
+DATA_COLLECTION_PATH="data_collection"
+
+check_db_exists() {
+    if [ ! -f "$DB_PATH" ]; then
+        return 1  
+    else
+        return 0  
+    fi
+}
+
+create_db() {
+    echo "Database not found. Creating the database..."
+    python3 installdb  
+    if [ $? -eq 0 ]; then
+        echo "Database created successfully."
+    else
+        echo "Error creating database."
+        exit 1
+    fi
+}
+
+
+run_data_collection() {
+    echo "Entering data_collection directory and running main.py..."
+    cd "$DATA_COLLECTION_PATH" || exit 1
+    python3 main.py
+    if [ $? -eq 0 ]; then
+        echo "main.py executed successfully."
+    else
+        echo "Error executing main.py."
+        exit 1
+    fi
+}
+
+
+if ! check_db_exists; then
+    create_db
+fi
+
+run_data_collection

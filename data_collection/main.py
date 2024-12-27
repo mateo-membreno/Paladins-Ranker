@@ -1,32 +1,34 @@
 import threading
 import queue
+import time
 
 import scrape
 import database
 
+run_flag = True
 
-# Thread-safe queues
+# python queues are already thread safe
 unscraped_ids = queue.Queue()
 unscraped_profiles = queue.Queue()
+unscraped_pages = queue.Queue()
 
-# Sets for scraped data
+# already seen pfps and ids
 scraped_ids = set()
 scraped_profiles = set()
 
-# Lock for thread-safe access to shared sets
 id_lock = threading.Lock()
 profile_lock = threading.Lock()
 
 def process_match_ids():
-    while True:
+    while len(scraped_ids) < 2:
         if not unscraped_ids.empty():
             id = unscraped_ids.get()
+            unscraped_pages.put(id)
             with id_lock:
                 if id in scraped_ids:
                     continue
                 scraped_ids.add(id)
 
-            match_data = scrape.scrape_match_data(id)
             profile_links = scrape.get_player_profiles(id)
 
             # add to links queue
@@ -34,12 +36,13 @@ def process_match_ids():
                 with profile_lock:
                     if profile not in scraped_profiles:
                         unscraped_profiles.put(profile)
+            print(id)
+        else:
+            time.sleep(0.1)
 
-            # Store match data in the database
-            database.store_match_data(match_data)
 
 def process_profiles():
-    while True:
+    while run_flag:
         if not unscraped_profiles.empty():
             profile = unscraped_profiles.get()
             with profile_lock:
@@ -55,11 +58,23 @@ def process_profiles():
                 with id_lock:
                     if id not in scraped_ids:
                         unscraped_ids.put(id)
+            print(profile)
+        else:
+            time.sleep(0.1)
 
 
-def store_match_data(match_data):
-    # Replace with actual database storage logic
-    print(f"Storing match data: {match_data}")
+def process_match_page():
+    while run_flag:
+        if not unscraped_pages.empty():
+            try:
+                id = unscraped_pages.get()
+                match_data = scrape.scrape_match_data(id)
+                database.store_match_data(match_data)
+                print(f"Uploaded match id {id} to db")
+            except Exception as e:
+                print(f"Error scraping match data for {id}: {e}")
+        else:
+            time.sleep(0.1)
 
 #innitialize id list
 unscraped_ids.put("1262539296")
@@ -67,10 +82,13 @@ unscraped_ids.put("1262539296")
 # Start threads
 match_thread = threading.Thread(target=process_match_ids, daemon=True)
 profile_thread = threading.Thread(target=process_profiles, daemon=True)
+page_thread = threading.Thread(target=process_match_page, daemon=True)
 
-match_thread.start()
-profile_thread.start()
+threads = [match_thread, profile_thread, page_thread]
 
-# Keep the main thread alive to allow worker threads to run
-match_thread.join()
-profile_thread.join()
+for thread in threads:
+    thread.start()
+
+for thread in threads:
+    thread.join()
+    run_flag = False

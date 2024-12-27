@@ -67,7 +67,7 @@ def scrape_match_data(match_id):
 
         return df
     except Exception as e:
-        logging.error(f"Error processing match ID {match_id}: {e}")
+        logging.error(f"Error scraping page data at {match_id}: {e}")
         return None
     
         
@@ -91,7 +91,6 @@ def get_user_match_ids(user_profile):
 def get_player_profiles(match_id):
     """Gets player profile link addresses from a match stats page."""
     url = f"https://paladins.guru/match/{match_id}"
-    print(url)
     try:
         response = requests.get(url)
         soup = BeautifulSoup(response.text, "html.parser")
@@ -109,16 +108,3 @@ def get_player_profiles(match_id):
     except Exception as e:
         logging.error(f"Error finding profiles for {match_id}: {e}")
         return None
-
-# The map function
-with open("match_ids.txt", "r") as file:
-    for line in file:
-        line = line.strip()
-        if line:
-            match_id = line
-            text = get_user_match_ids("5582939-mateom02")
-            if text:
-                with open('output.csv', mode='w', newline='') as file:
-                    writer = csv.writer(file)
-                    writer.writerows([player] for player in text)
-
