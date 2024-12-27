@@ -16,6 +16,8 @@ main program flow
 
 
 use sets to track for duplicate ids and players
+
+
 queues are thread safe in python, so only needed to worry about the sets
 
 ## Other Details
