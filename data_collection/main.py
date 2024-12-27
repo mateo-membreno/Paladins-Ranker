@@ -20,23 +20,26 @@ id_lock = threading.Lock()
 profile_lock = threading.Lock()
 
 def process_match_ids():
-    while len(scraped_ids) < 2:
+    while len(scraped_ids) < 1000:
         if not unscraped_ids.empty():
-            id = unscraped_ids.get()
-            unscraped_pages.put(id)
-            with id_lock:
-                if id in scraped_ids:
-                    continue
-                scraped_ids.add(id)
+            try:
+                id = unscraped_ids.get()
+                unscraped_pages.put(id)
+                with id_lock:
+                    if id in scraped_ids:
+                        continue
+                    scraped_ids.add(id)
 
-            profile_links = scrape.get_player_profiles(id)
+                profile_links = scrape.get_player_profiles(id)
 
-            # add to links queue
-            for profile in profile_links:
-                with profile_lock:
-                    if profile not in scraped_profiles:
-                        unscraped_profiles.put(profile)
-            print(id)
+                # add to links queue
+                for profile in profile_links:
+                    with profile_lock:
+                        if profile not in scraped_profiles:
+                            unscraped_profiles.put(profile)
+                print(id)
+            except Exception as e:
+                print(f"Couldn't process id {id}: {e}")
         else:
             time.sleep(0.1)
 
@@ -44,21 +47,24 @@ def process_match_ids():
 def process_profiles():
     while run_flag:
         if not unscraped_profiles.empty():
-            profile = unscraped_profiles.get()
-            with profile_lock:
-                if profile in scraped_profiles:
-                    continue
-                scraped_profiles.add(profile)
+            try:
+                profile = unscraped_profiles.get()
+                with profile_lock:
+                    if profile in scraped_profiles:
+                        continue
+                    scraped_profiles.add(profile)
 
-            # Simulate getting match IDs for a profile
-            match_ids = scrape.get_user_match_ids(profile)
+                # Simulate getting match IDs for a profile
+                match_ids = scrape.get_user_match_ids(profile)
 
-            # Add match IDs to the ID queue
-            for id in match_ids:
-                with id_lock:
-                    if id not in scraped_ids:
-                        unscraped_ids.put(id)
-            print(profile)
+                # Add match IDs to the ID queue
+                for id in match_ids:
+                    with id_lock:
+                        if id not in scraped_ids:
+                            unscraped_ids.put(id)
+                print(profile)
+            except Exception as e:
+                print(f"Couldn't process profile {profile}: {e}")
         else:
             time.sleep(0.1)
 
@@ -91,4 +97,3 @@ for thread in threads:
 
 for thread in threads:
     thread.join()
-    run_flag = False
