@@ -1,0 +1,39 @@
+import sqlite3
+
+# Function to create a database and table if it doesn't exist
+def initialize_db(db_name="paladins.db"):
+    # Establish SQLite connection
+    conn = sqlite3.connect(db_name)
+    cursor = conn.cursor()
+    
+    # Create table if it doesn't exist
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS match (
+            username TEXT,
+            champ_level INTEGER,
+            k INTEGER,
+            d INTEGER,
+            a INTEGER,
+            credits INTEGER,
+            cpm INTEGER,
+            result TEXT,
+            champion TEXT,
+            damage INTEGER,
+            weapon INTEGER,
+            healing INTEGER,
+            self_heal INTEGER,
+            taken INTEGER,
+            shielding INTEGER,
+            map TEXT,
+            match_id TEXT
+        );
+    ''')
+    
+    # Commit and close the connection
+    conn.commit()
+    conn.close()
+    
+    print(f"Database '{db_name}' initialized and table 'match' created if not already present.")
+
+# Call the function to initialize the DB and create the table
+initialize_db()

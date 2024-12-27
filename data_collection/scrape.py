@@ -1,43 +1,23 @@
 #!/usr/bin/env python3
-import sys
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from time import sleep
 from bs4 import BeautifulSoup
 import pandas as pd
 import logging
+import requests
+import csv
 
-# Set up Selenium options (optional, to run without a browser window)
-chrome_options = Options()
-chrome_options.add_argument("--headless")  # Run in headless mode (no UI)
-chrome_options.add_argument("--disable-gpu")
-chrome_options.add_argument("--no-sandbox")
-
-# Path to your WebDriver (ChromeDriver in this case)
-driver_path = "chromedriver-mac-arm64/chromedriver"
-
-service = Service(driver_path)
-driver = webdriver.Chrome(service=service, options=chrome_options)
-
-def extract_data_from_html(match_id):
+def scrape_match_data(match_id):
     """Extract text from a URL using Selenium to render the page."""
     url = "https://paladins.guru/match/" + match_id
     try:
-        driver.get(url)
-        sleep(3) 
+        response = requests.get(url)
 
-        soup = BeautifulSoup(driver.page_source, "html.parser")
-
-
+        soup = BeautifulSoup(response.text, "html.parser")
 
         # map
         parent_div = soup.find(class_="page-header")
         map_div = parent_div.find(class_="page-header__div text-right")
         map = map_div.find("h2").get_text(strip=True)
-
-        
+    
         # match stats
         players = {}
         column_names = ["username", "champ_level", "k", "d", "a", "credits", "cpm"]
@@ -53,8 +33,6 @@ def extract_data_from_html(match_id):
                         data = row_item.find("div", recursive=False)
                         data = data.find_all(recursive=False)
                         row[column_names[i]] = data[0].get_text(strip=True)
-                        link = data[0].get("href") 
-                        print(link)
                         champion = data[1].get_text(strip=True)
                     elif i==2:
                         # k, d, a
@@ -66,8 +44,7 @@ def extract_data_from_html(match_id):
                 players[champion] = row
 
         #damage insight
-
-        column_names = ["win_loss", "champion", "damage", "weapon", "healing", "self_heal", "taken", "shielding"]
+        column_names = ["result", "champion", "damage", "weapon", "healing", "self_heal", "taken", "shielding"]
 
         parent_div = soup.find(id="insight-damage")
         table_data = parent_div.find(class_="columns", recursive=False)
@@ -92,6 +69,46 @@ def extract_data_from_html(match_id):
     except Exception as e:
         logging.error(f"Error processing match ID {match_id}: {e}")
         return None
+    
+        
+
+
+def get_user_match_ids(user_profile):
+    """Gets match ids from the first page of a player's match history."""
+    url = f"https://paladins.guru/profile/{user_profile}/matches"
+    try:
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, "html.parser")
+
+        match_ids = [a['href'].split('/match/', 1)[1] for a in soup.find_all('a', href=True) if a['href'].startswith('/match/')]
+
+        return match_ids
+    except Exception as e:
+            logging.error(f"Error finding matches for user {user_profile}: {e}")
+            return None
+
+
+def get_player_profiles(match_id):
+    """Gets player profile link addresses from a match stats page."""
+    url = f"https://paladins.guru/match/{match_id}"
+    print(url)
+    try:
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, "html.parser")
+        profiles = [a['href'].split('/profile/', 1)[1] for a in soup.find_all('a', href=True) if a['href'].startswith('/profile/')]
+        
+        seen_profiles = set()
+        filtered = []
+
+        for profile in profiles:
+            if profile not in seen_profiles:
+                filtered.append(profile)
+                seen_profiles.add(profile)
+
+        return filtered
+    except Exception as e:
+        logging.error(f"Error finding profiles for {match_id}: {e}")
+        return None
 
 # The map function
 with open("match_ids.txt", "r") as file:
@@ -99,8 +116,9 @@ with open("match_ids.txt", "r") as file:
         line = line.strip()
         if line:
             match_id = line
-            text = extract_data_from_html(match_id)
-            if not text.empty:
-                print(f"{match_id}\n{text}")
+            text = get_user_match_ids("5582939-mateom02")
+            if text:
+                with open('output.csv', mode='w', newline='') as file:
+                    writer = csv.writer(file)
+                    writer.writerows([player] for player in text)
 
-driver.quit()
