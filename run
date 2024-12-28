@@ -27,7 +27,7 @@ create_db() {
 run_data_collection() {
     echo "Entering data_collection directory and running main.py..."
     cd "$DATA_COLLECTION_PATH" || exit 1
-    python3 main.py $START_MATCH_ID
+    python3 main.py $DB_PATH $START_MATCH_ID
     if [ $? -eq 0 ]; then
         echo "main.py executed successfully."
     else

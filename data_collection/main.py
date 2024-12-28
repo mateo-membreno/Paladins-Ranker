@@ -7,7 +7,8 @@ import scrape
 import database
 
 run_flag = True
-START_MATCH_ID = str(sys.argv[1])
+START_MATCH_ID = str(sys.argv[2])
+DB_PATH = str(sys.argv[1])
 
 # python queues are already thread safe
 unscraped_ids = queue.Queue()
@@ -77,7 +78,7 @@ def process_match_page():
             try:
                 id = unscraped_pages.get()
                 match_data = scrape.scrape_match_data(id)
-                database.store_match_data(match_data)
+                database.store_match_data(DB_PATH, match_data)
                 print(f"Uploaded match id {id} to db")
             except Exception as e:
                 print(f"Error scraping match data for {id}: {e}")

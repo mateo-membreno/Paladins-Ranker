@@ -1,7 +1,7 @@
 import sqlite3
 import pandas as pd
 
-def store_match_data(df):
+def store_match_data(db, df):
     try:
         df['champ_level'] = df['champ_level'].astype(int)
         df['k'] = df['k'].astype(int)
@@ -16,7 +16,7 @@ def store_match_data(df):
         df['taken'] = df['taken'].replace({',': ''}, regex=True).astype(int)
         df['shielding'] = df['shielding'].replace({',': ''}, regex=True).astype(int)
 
-        conn = sqlite3.connect("../paladins.db")
+        conn = sqlite3.connect(f"../{db}")
         df.to_sql("match", conn, if_exists="append", index=False)
         conn.close()
     except Exception as e:
