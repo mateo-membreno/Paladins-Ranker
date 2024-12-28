@@ -1,7 +1,10 @@
 import sqlite3
+import sys
+
+db_name = sys.argv[1]
 
 # Function to create a database and table if it doesn't exist
-def initialize_db(db_name="paladins.db"):
+def initialize_db(db_name=db_name):
     # Establish SQLite connection
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()

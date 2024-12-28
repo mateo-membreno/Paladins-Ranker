@@ -1,11 +1,13 @@
 import threading
 import queue
 import time
+import sys
 
 import scrape
 import database
 
 run_flag = True
+START_MATCH_ID = str(sys.argv[1])
 
 # python queues are already thread safe
 unscraped_ids = queue.Queue()
@@ -83,7 +85,7 @@ def process_match_page():
             time.sleep(0.1)
 
 #innitialize id list
-unscraped_ids.put("1262539296")
+unscraped_ids.put(START_MATCH_ID)
 
 # Start threads
 match_thread = threading.Thread(target=process_match_ids, daemon=True)
